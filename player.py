@@ -20,7 +20,7 @@ class Player:
             return
         self.player.set_fullscreen(True)
         self.player.play()
-        self.disable_subtitles() # subtitles are disabled by default
+        self.player.video_set_spu(-1)
         return True
 
     def pause(self):

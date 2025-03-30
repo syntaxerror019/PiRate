@@ -99,7 +99,7 @@ def handle_watch(id):
     logging.info(id)
     files = tor.torrent_status()
     file = tor.get_file_path(id, files)
-    logging.info("THE TORRENT FILE IS: ", file)
+    logging.info("THE TORRENT FILE IS: %s", file)
     player.set_media(file)
     player.play()
     emit('watch_res', {'data': file})
