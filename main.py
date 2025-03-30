@@ -97,6 +97,8 @@ def handle_update_res():
         emit('update_now_res', {'data': True})
     else:
         emit('update_now_res', {'data': False})
+        
+    os.execv(sys.executable, ['python3'] + sys.argv)
 
 @socketio.on('pause_torrent')
 def handle_pause(id):
@@ -181,7 +183,7 @@ def handle_disable_cc():
 def setup():
     global items, extra, settings, version
     
-    with open("version.txt", "w") as r:
+    with open("version.txt", "r") as f:
         version = f.read().strip()
         
     logging.critical(f"PiRate v{version} - syntaxerror019")
