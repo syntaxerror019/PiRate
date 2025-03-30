@@ -16,8 +16,8 @@ torrents = py1337x()
 # Change this depending on your QBittorrent software/ web ui api version...
 tor = tr(use_old_api=False)
 
-CACHE = 'static/data.json'
-SETTINGS = 'static/settings.json'
+CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'cache.json')
+SETTINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'settings.json')
 
 settings = {}
 

@@ -36,3 +36,6 @@ docs/_build/
 *.egg-info/
 dist/
 build/
+
+# Ignore files in static folder
+*.json
