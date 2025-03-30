@@ -25,6 +25,7 @@ tor = tr(use_old_api=False)
 
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'cache.json')
 SETTINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'settings.json')
+VERSION = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.txt')
 
 settings = {}
 
@@ -183,7 +184,7 @@ def handle_disable_cc():
 def setup():
     global items, extra, settings, version
     
-    with open("version.txt", "r") as f:
+    with open(VERSION, "r") as f:
         version = f.read().strip()
         
     logging.critical(f"PiRate v{version} - syntaxerror019")

@@ -1,9 +1,12 @@
-from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QSpacerItem, QSizePolicy
 from PyQt5.QtCore import QTimer, Qt
 import socket
 import psutil
-import random
 import time
+import os
+from PyQt5.QtGui import QMovie
+
+WALLPAPER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'bg.gif')
 
 class FullscreenApp(QMainWindow):
     def __init__(self):
@@ -16,46 +19,77 @@ class FullscreenApp(QMainWindow):
 
         self.setCursor(Qt.BlankCursor)
 
-        # Main layout
-        self.central_widget = QWidget()
+        # Background GIF
+        self.gif_label = QLabel(self)
+        self.gif_label.setGeometry(0, 0, self.width(), self.height())
+        self.movie = QMovie(WALLPAPER)
+        self.gif_label.setMovie(self.movie)
+        self.movie.setScaledSize(self.size())  # Scale the GIF dynamically
+        self.gif_label.setScaledContents(True)
+        self.movie.start()
+
+        # Central widget container
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
+
+        # Layouts
+        self.container_layout = QVBoxLayout(self.central_widget)
+
+        # Spacer to push content to center
+        self.container_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
+        # Main vertical layout (centered items)
         self.main_layout = QVBoxLayout()
         self.main_layout.setAlignment(Qt.AlignCenter)
 
-        # IP label at the center
-        self.ip_label = QLabel("IP Address: Loading...", self)
-        self.ip_label.setAlignment(Qt.AlignCenter)
-        self.ip_label.setStyleSheet("font-size: 32px;")
-        self.main_layout.addWidget(self.ip_label)
+        # Time Label (Biggest)
+        self.time_label = QLabel("00:00:00", self)
+        self.time_label.setAlignment(Qt.AlignCenter)
+        self.time_label.setStyleSheet("font-size: 100px; font-weight: bold; color: white;")
+        self.main_layout.addWidget(self.time_label)
 
-        # Bottom-left layout for the status label
-        self.bottom_layout = QHBoxLayout()
-        self.bottom_layout.setAlignment(Qt.AlignCenter)
-        self.status_label = QLabel("Status: Loading...", self)
+        # Status Label (CPU & Memory)
+        self.status_label = QLabel("CPU Usage: --%    Memory Usage: --%", self)
+        self.status_label.setAlignment(Qt.AlignCenter)
         self.status_label.setStyleSheet("font-size: 20px;")
-        self.bottom_layout.addWidget(self.status_label)
+        self.main_layout.addWidget(self.status_label)
 
-        # Add the bottom layout to the main layout
-        self.main_layout.addLayout(self.bottom_layout)
+        # Add main centered content
+        self.container_layout.addLayout(self.main_layout)
 
-        self.central_widget.setLayout(self.main_layout)
-        self.setCentralWidget(self.central_widget)
+        # Another spacer to keep things centered
+        self.container_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        color1 = "#7BA3C7"
-        color2 = "#7BA3C7"
+        # Bottom Layout for IP (Bottom Left)
+        self.bottom_layout = QHBoxLayout()
+        self.bottom_layout.setAlignment(Qt.AlignLeft)  # Align to bottom left
 
-        self.setStyleSheet(
-            f"""
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 {color1}, stop:1 {color2});
-            color: #fff;
-            line-height: 1.6;
-            padding: 20px;
-            """
-        )
+        self.ip_label = QLabel("IP Address: Loading...", self)
+        self.ip_label.setStyleSheet("font-size: 27px; color: white;")
+        self.bottom_layout.addWidget(self.ip_label)
 
+        # Push IP to the bottom
+        self.container_layout.addLayout(self.bottom_layout)
+
+        self.central_widget.setLayout(self.container_layout)
+
+        # Make sure labels are on top of GIF
+        self.gif_label.lower()
+        self.central_widget.raise_()
+
+        # Set global text style
+        self.setStyleSheet("""
+            QLabel {
+                color: white;
+                font-weight: bold;
+                letter-spacing: 1.7px;
+            }
+        """)
+
+        # Timer for updates
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
-        self.timer.start(1000)  # Update every second
+        self.timer.start(1000)  
 
         self.showFullScreen()
 
@@ -64,9 +98,8 @@ class FullscreenApp(QMainWindow):
         for interface, addresses in interfaces.items():
             for addr in addresses:
                 if addr.family == socket.AF_INET and not addr.address.startswith("127."):
-                    return addr.address  # Returns the first non-localhost IPv4 address
-
-        return "No active network connection found"
+                    return addr.address  
+        return "No active network connection"
 
     def get_cpu_usage(self):
         return f"{psutil.cpu_percent()}%"
@@ -82,7 +115,8 @@ class FullscreenApp(QMainWindow):
         ip_address = self.get_ip_address()
         cpu_usage = self.get_cpu_usage()
         memory_usage = self.get_memory_usage()
-        time = self.get_local_time()
+        local_time = self.get_local_time()
 
-        self.status_label.setText(f"CPU Usage: {cpu_usage} | Memory Usage: {memory_usage} | {time}")
-        self.ip_label.setText(f"Please visit: <a style='color:#021E83' href='#'>http://{ip_address}:8080</a>")
+        self.status_label.setText(f"CPU Usage:  {cpu_usage}    Memory Usage:  {memory_usage}")
+        self.ip_label.setText(f"Please visit:&nbsp;&nbsp;<a style='color:#008CD7; text-decoration: none;' href='#'>http://{ip_address}:8080</a>")
+        self.time_label.setText(local_time)

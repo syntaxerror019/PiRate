@@ -909,6 +909,11 @@
                 update_required = false; // Reset the flag
             }
             socket.emit('trending'); // request for trending movies and tv shows
+
+            if (STATE == 0) {
+                close_message();
+            }
+
             STATE = 1;
         });
         socket.on('disconnect', function () {
@@ -918,7 +923,7 @@
                 if (STATE == 0) {
                     show_message("Connection Error", "Disconnected from server. Please refresh the page to reconnect.");
                 }
-            }, 3000);
+            }, 5000);
         });
         socket.on('update', function (data) {
             // There is an update available!
