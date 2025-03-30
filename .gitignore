@@ -39,3 +39,5 @@ build/
 
 # Ignore files in static folder
 *.json
+
+*.log

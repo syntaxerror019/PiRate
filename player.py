@@ -1,6 +1,7 @@
 import vlc
 import threading
 import time
+from logger import logging
 
 class Player:
     def __init__(self):
@@ -15,10 +16,11 @@ class Player:
 
     def play(self):
         if not self.media_path:
-            print("No media file set!")
+            logging.error("No media file set!")
             return
         self.player.set_fullscreen(True)
         self.player.play()
+        self.disable_subtitles() # subtitles are disabled by default
         return True
 
     def pause(self):
@@ -37,7 +39,20 @@ class Player:
         self.player.set_time(new_time)
 
     def enable_subtitles(self):
-        self.player.video_set_spu(0)  # 0 is usually the first subtitle track
+        spu_count = self.player.video_get_spu_count()  # Get number of available subtitle tracks
+        logging.debug(f"Available subtitle tracks: {spu_count}")
+        
+        if spu_count > 0:
+            spu_tracks = self.player.video_get_spu_description()
+            if len(spu_tracks) > 1:
+                second_track = spu_tracks[1][0]  # Extract the second subtitle track ID
+                logging.debug(f"Enabling subtitles: Track {second_track}")
+                self.player.video_set_spu(second_track)
+            else:
+                logging.debug("Second subtitle track not available.")
+        else:
+            logging.debug("No subtitles available.")
+
 
     def disable_subtitles(self):
         self.player.video_set_spu(-1)  # -1 disables subtitles

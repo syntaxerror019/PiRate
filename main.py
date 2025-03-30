@@ -5,15 +5,18 @@ from py1337x import py1337x
 from torrent import tr
 from player import Player
 from overlay import FullscreenApp
+from logger import logging
 import json
 import time
 import threading
 import os, sys
 import pathlib
+import logging
+import sys
 
 torrents = py1337x() 
 
-# Change this depending on your QBittorrent software/ web ui api version...
+# change this depending on your QBittorrent software/ web ui api version...
 tor = tr(use_old_api=False)
 
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'cache.json')
@@ -28,7 +31,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 player = Player()
 
-# Serve the main page
+# serve the main page
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -39,11 +42,11 @@ def legal():
 
 @socketio.on('connect')
 def test_connect():
-    print('Client connected')
+    logging.info('Client connected')
 
 @socketio.on('trending')
 def handle_trending():
-    print("Received trending request")
+    logging.info("Received trending request")
     if items and extra:
         emit('trending_res', {'data': items, 'extra': extra})
     else:
@@ -51,10 +54,12 @@ def handle_trending():
 
 @socketio.on('torrent')
 def handle_torrent(url):
-    print("Received torrent request")   
+    logging.info("Received torrent request")   
     if not tor.download_torrent(url):
+        logging.error("Failed to download torrent from URL: %s", url)
         emit('torrent_res', {'data': False})
     else:
+        logging.info("Torrent download started successfully from URL: %s", url)
         emit('torrent_res', {'data': True})
 
 @socketio.on('status')
@@ -74,27 +79,27 @@ def handle_details(id):
 
 @socketio.on('pause_torrent')
 def handle_pause(id):
-    print("Received pause request")
+    logging.info("Received pause request")
     tor.pause(id)
 
 @socketio.on('resume_torrent')
 def handle_resume(id):
-    print("Received resume request")
+    logging.info("Received resume request")
     tor.resume(id)
 
 @socketio.on('delete_torrent')
 def handle_delete(id):
-    print("Received delete request")
+    logging.info("Received delete request")
     tor.delete(id)
 
 # Media Controls
 @socketio.on('watch')
 def handle_watch(id):
-    print("Received watch request")
-    print(id)
+    logging.info("Received watch request")
+    logging.info(id)
     files = tor.torrent_status()
     file = tor.get_file_path(id, files)
-    print("THE TORRENT FILE IS: ", file)
+    logging.info("THE TORRENT FILE IS: ", file)
     player.set_media(file)
     player.play()
     emit('watch_res', {'data': file})
@@ -102,7 +107,7 @@ def handle_watch(id):
 @socketio.on('pause')
 @socketio.on('play')
 def handle_pause():
-    print("Received pause/play request")
+    logging.info("Received pause/play request")
     player.pause()
 
 # Monitoring variables
@@ -116,11 +121,11 @@ def handle_fast_forward():
     global fast_forward_count, last_fast_forward_time
     current_time = time.time()
     if current_time - last_fast_forward_time < 1/3:
-        print("FFW")
+        logging.info("FFW")
         player.fast_forward(60)
     else:
         player.fast_forward(10)
-        print("FW")
+        logging.info("FW")
     last_fast_forward_time = current_time
     fast_forward_count += 1
     
@@ -129,27 +134,27 @@ def handle_rewind():
     global rewind_count, last_rewind_time
     current_time = time.time()
     if current_time - last_rewind_time < 1/3:
-        print("RRW")
+        logging.info("RRW")
         player.rewind(60)
     else:
         player.rewind(10)
-        print("RW")
+        logging.info("RW")
     last_rewind_time = current_time
     rewind_count += 1
 
 @socketio.on('stop')
 def handle_stop():
-    print("Received stop request")
+    logging.info("Received stop request")
     player.stop_and_close()
 
 @socketio.on('enable_cc')
 def handle_enable_cc():
-    print("Received enable CC request")
+    logging.info("Received enable CC request")
     player.enable_subtitles()
 
 @socketio.on('disable_cc')
 def handle_disable_cc():
-    print("Received disable CC request")
+    logging.info("Received disable CC request")
     player.disable_subtitles()
 
 def setup():
@@ -167,11 +172,16 @@ def setup():
             data = json.load(f)
             items = data['data']
             extra = data['extra']
-    
+            
     if settings['location']:
         tor.set_torrent_download_location(settings['location'], create=True)
     else:
         raise Exception("No download location set. Is the settings file missing?")
+
+    if not tor.check_connection():
+        logging.error("Failed to connect to QBittorrent. Please check your settings and ensure QBittorrent is running.")
+        raise Exception("Failed to connect to QBittorrent. Please check your settings and ensure QBittorrent is running.")
+    
 
 def background_task():
     global items, extra
@@ -218,7 +228,7 @@ if __name__ == '__main__':
         sys.exit(app.exec_())
 
     except KeyboardInterrupt:
-        print("Exiting...")
+        logging.info("Shutting down...")
         if player.is_playing():
             player.stop_and_close()
-        sys.exit(0)
+        sys.exit(app.exec_())

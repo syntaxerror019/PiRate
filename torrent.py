@@ -1,4 +1,5 @@
 import requests, os, re, time
+from logger import logging
 
 TORRENT_BASE_URL = None
 TORRENT_VERSION_ENDPOINT = None
@@ -65,14 +66,12 @@ class tr:
             TORRENT_DELETE_ENDPOINT = V4_TORRENT_DELETE_ENDPOINT
 
         self.location = None
-
+        
+        
+    def check_connection(self):
         connection_attempts = 0
-        
-        # attempt to connect to the client over the span of 15 seconds
-        
-        while connection_attempts < 3:
+        while connection_attempts < 5:
             try:
-                # Test connection to the torrent client
                 res = requests.get(TORRENT_BASE_URL + TORRENT_VERSION_ENDPOINT)
                 if res.status_code == 200:
                     break
@@ -82,8 +81,10 @@ class tr:
                 connection_attempts += 1
                 if connection_attempts >= 3:
                     raise ConnectionError("Connection error. Is qbittorrent running? Is the right URL and port set?")
-                print(f"Connection attempt {connection_attempts} failed. Retrying in 5 seconds...")
+                logging.warning(f"Connection attempt {connection_attempts} failed. Retrying in 5 seconds...")
                 time.sleep(5)
+        
+        return True
 
 
     def set_torrent_download_location(self, location, create=False):
@@ -97,7 +98,6 @@ class tr:
 
 
     def download_torrent(self, url):
-        print("Downloading to:", self.location)
         data = {
             'urls': url,
             'autoTMM': 'false',
@@ -215,7 +215,7 @@ class tr:
     def get_file_path(self, id, torrents):
         video_extensions = ('.mp4', '.mkv', '.avi', '.mov', '.flv', '.wmv')     
         for entry in torrents:
-            print(f"Checking entry: {entry['hash']} against id: {id}")
+            logging.info(f"Checking entry: {entry['hash']} against id: {id}")
             if entry['hash'] == id:
                 entry_keywords = split_keywords(entry['name'])
                 
@@ -226,18 +226,18 @@ class tr:
                             
                             matched_keywords = [kw for kw in entry_keywords if kw in file_keywords]
                             
-                            print(f"Entry Name: {entry['name']}")
-                            print(f"File Name: {file_name}")
-                            print(f"Entry Keywords: {entry_keywords}")
-                            print(f"File Keywords: {file_keywords}")
-                            print(f"Matched Keywords: {matched_keywords}")
+                            logging.info(f"Entry Name: {entry['name']}")
+                            logging.info(f"File Name: {file_name}")
+                            logging.info(f"Entry Keywords: {entry_keywords}")
+                            logging.info(f"File Keywords: {file_keywords}")
+                            logging.info(f"Matched Keywords: {matched_keywords}")
                             
                             # 70% of the keywords match, it a match
                             if len(matched_keywords) >= 0.5 * len(entry_keywords):
                                 return os.path.join(root, file_name)
                             else:
-                                print(f"Not enough keyword matches for {file_name}. Matched: {len(matched_keywords)} out of {len(entry_keywords)}")
-                                print(f"No matching file found for torrent ID: {id}")
+                                logging.warning(f"Not enough keyword matches for {file_name}. Matched: {len(matched_keywords)} out of {len(entry_keywords)}")
+                                logging.error(f"No matching file found for torrent ID: {id}")
                                 return None
         
                             
