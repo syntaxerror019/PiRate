@@ -54,9 +54,7 @@ class GitUpdater:
             version_response = requests.get(version_url)
             version_response.raise_for_status()
             version = version_response.text.strip()
-            print(f"Version: {version}")
         except requests.RequestException as e:
-            print(f"Error fetching version information: {e}")
             version = "unknown"
     
         return {
