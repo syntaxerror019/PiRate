@@ -44,15 +44,16 @@ class GitUpdater:
             response = requests.get(url)
             response.raise_for_status()
             commit_info = response.json()
-            return {
+        except requests.RequestException as e:
+            print(f"Error fetching latest commit information: {e}")
+            return None
+    
+        return {
                 "sha": commit_info["sha"],
                 "message": commit_info["commit"]["message"],
                 "author": commit_info["commit"]["author"]["name"],
                 "date": commit_info["commit"]["author"]["date"]
             }
-        except requests.RequestException as e:
-            print(f"Error fetching latest commit information: {e}")
-            return None
 
     def check_for_updates(self):
         """

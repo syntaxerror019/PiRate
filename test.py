@@ -1,14 +1,14 @@
-import psutil
-import socket
+import requests
 
-def get_local_ip():
-    interfaces = psutil.net_if_addrs()
-    for interface, addresses in interfaces.items():
-        for addr in addresses:
-            if addr.family == socket.AF_INET and not addr.address.startswith("127."):
-                return addr.address  # Returns the first non-localhost IPv4 address
+owner = "<owner>"
+repo = "<repo>"
 
-    return "No active network connection found"
+url = f"https://api.github.com/repos/syntaxerror019/PiRate/commits"
+response = requests.get(url)
 
-local_ip = get_local_ip()
-print("Local IP:", local_ip)
+# Pagination handling
+if response.status_code == 200:
+    total_commits = int(response.headers['X-Total-Count'])
+    print(f"Total commits: {total_commits}")
+else:
+    print(f"Error fetching commits: {response.status_code}")

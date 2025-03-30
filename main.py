@@ -15,6 +15,8 @@ import pathlib
 import logging
 import sys
 
+VERSION = "1.14.3"
+
 torrents = py1337x() 
 updater = GitUpdater(github_owner="syntaxerror019", github_repo="PiRate", branch="main")
 
@@ -38,7 +40,7 @@ player = Player()
 # serve the main page
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', version=VERSION)
 
 @app.route('/legal')
 def legal():
@@ -178,6 +180,9 @@ def handle_disable_cc():
 
 def setup():
     global items, extra, settings
+    
+    with open("version.txt", "w") as f:
+        f.write(VERSION)
     
     if os.path.exists(SETTINGS):
         with open(SETTINGS, 'r') as f:
