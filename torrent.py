@@ -27,8 +27,7 @@ V3_TORRENT_DELETE_ENDPOINT = '/command/deletePerm'
 
 
 def split_keywords(name):
-    return re.split(r'[.\s\-]+', name.lower())
-
+    return re.findall(r'[a-zA-Z0-9]+', name.lower())
 
 class tr:
     def __init__(self, url=None, endpoint=None, use_old_api=False):
@@ -212,33 +211,36 @@ class tr:
         return False
     
 
-    def get_file_path(self, id, torrents):
-        video_extensions = ('.mp4', '.mkv', '.avi', '.mov', '.flv', '.wmv')     
+
+    def get_file_path(self, torrents):
+        """ Finds the best matching video file based on keyword similarity. """
+        video_extensions = ('.mp4', '.mkv', '.avi', '.mov', '.flv', '.wmv')
+        best_match = None
+        best_match_score = 0
+
+        # Iterate over every torrent entry
         for entry in torrents:
-            logging.info(f"Checking entry: {entry['hash']} against id: {id}")
-            if entry['hash'] == id:
-                entry_keywords = split_keywords(entry['name'])
-                
-                for root, dirs, files in os.walk(self.location):
-                    for file_name in files:
-                        if file_name.endswith(video_extensions):
-                            file_keywords = split_keywords(file_name)
-                            
-                            matched_keywords = [kw for kw in entry_keywords if kw in file_keywords]
-                            
-                            logging.info(f"Entry Name: {entry['name']}")
-                            logging.info(f"File Name: {file_name}")
-                            logging.info(f"Entry Keywords: {entry_keywords}")
-                            logging.info(f"File Keywords: {file_keywords}")
-                            logging.info(f"Matched Keywords: {matched_keywords}")
-                            
-                            # 70% of the keywords match, it a match
-                            if len(matched_keywords) >= 0.5 * len(entry_keywords):
-                                return os.path.join(root, file_name)
-                            else:
-                                logging.warning(f"Not enough keyword matches for {file_name}. Matched: {len(matched_keywords)} out of {len(entry_keywords)}")
-                                logging.error(f"No matching file found for torrent ID: {id}")
-                                return None
-        
-                            
-        return None
+            entry_keywords = split_keywords(entry['name'])
+            logging.info(f"Checking files for torrent: {entry['name']} ({entry_keywords})")
+
+            # Scan the directory for video files
+            for root, _, files in os.walk(self.location):
+                for file_name in files:
+                    if file_name.endswith(video_extensions):
+                        file_keywords = split_keywords(file_name)
+                        matched_keywords = [kw for kw in entry_keywords if kw in file_keywords]
+                        match_score = len(matched_keywords)
+
+                        logging.info(f"Comparing: {file_name} -> Matched {match_score} keywords.")
+
+                        # Update the best match if this file has more keyword matches
+                        if match_score > best_match_score:
+                            best_match = os.path.join(root, file_name)
+                            best_match_score = match_score
+
+        if best_match:
+            logging.info(f"Best match found: {best_match} with {best_match_score} matched keywords.")
+        else:
+            logging.warning("No suitable match found.")
+
+        return best_match
