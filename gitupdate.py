@@ -20,7 +20,7 @@ class GitUpdater:
         try:
             response = requests.get(url)
             response.raise_for_status()
-            return response.json()["sha"]
+            return response.json()["commit"]["tree"]["sha"]
         except requests.RequestException as e:
             print(f"Error fetching latest commit: {e}")
             return None
@@ -32,6 +32,27 @@ class GitUpdater:
         except subprocess.CalledProcessError as e:
             print(f"Error getting local commit: {e}")
             return None
+        
+    def latest_commit_information(self):
+        """
+        Fetches the latest commit information from GitHub.
+
+        :return: A dictionary with commit details or None if an error occurs
+        """
+        url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/commits/{self.branch}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            commit_info = response.json()
+            return {
+                "sha": commit_info["sha"],
+                "message": commit_info["commit"]["message"],
+                "author": commit_info["commit"]["author"]["name"],
+                "date": commit_info["commit"]["author"]["date"]
+            }
+        except requests.RequestException as e:
+            print(f"Error fetching latest commit information: {e}")
+            return None
 
     def check_for_updates(self):
         """
@@ -41,14 +62,17 @@ class GitUpdater:
         """
         latest_commit = self.get_latest_commit()
         local_commit = self.get_local_commit()
+        
+        print(f"Latest commit on GitHub: {latest_commit}")
+        print(f"Local commit: {local_commit}")
 
         if latest_commit and local_commit:
             if latest_commit != local_commit:
                 print("Update available!")
-                return True
+                return True, self.latest_commit_information()
             else:
                 print("Already up to date.")
-                return False
+                return False, None
 
     def pull_updates(self):
         """Pulls the latest changes while preserving local modifications."""

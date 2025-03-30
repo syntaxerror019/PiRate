@@ -47,10 +47,10 @@ def legal():
 @socketio.on('connect')
 def test_connect():
     global update_available
-    if updater.check_for_updates():
-        update_available = True
+    update_available, details = updater.check_for_updates()
+    if update_available:
         logging.info("Update available!")
-        emit('update', {'data': True})
+        emit('update', {'data': details})
         
     logging.info('Client connected')
 
@@ -177,11 +177,7 @@ def handle_disable_cc():
     player.disable_subtitles()
 
 def setup():
-    global items, extra, settings, update_available
-    
-    if updater.check_for_updates():
-        update_available = True
-        logging.info("Update available!")
+    global items, extra, settings
     
     if os.path.exists(SETTINGS):
         with open(SETTINGS, 'r') as f:

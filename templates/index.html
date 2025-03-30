@@ -923,8 +923,23 @@
         socket.on('update', function (data) {
             // There is an update available!
             console.log("Update available: ", data);
-            if (confirm(`An update is available! Would you like to download it? (Strongly Recommended)`)) {
-               socket.emit('update_now')
+            if (confirm(
+            `An update is available!\n\n` +
+            `Would you like to download it? (Strongly Recommended)\n\n` +
+            `Additional details:\n` +
+            `- Update published by: ${data.data.author}\n` +
+            `- Date: ${data.data.date}\n` +
+            `- Release Notes: ${data.data.message || 'No release notes provided.'}`
+            )) {
+            // User accepted the update
+            show_message(
+                "Update Downloading",
+                "Please wait while the update downloads. This may take a few seconds.",
+                buttonText = "Working...",
+                buttonEnabled = false
+            );
+            // Emit to download the update
+            socket.emit('update_now');
             }
         });
         socket.on('update_now_res', function (data) {
