@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PiRate Cable Box v1.0</title>
+    <style>
+        /* General Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        header {
+            background-color: #4e73df;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            width: 70%;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 0px;
+            border-bottom-left-radius: 0px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            /* margin-bottom: 20px; */
+        }
+
+        footer {
+            background-color: #4e73df;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            width: 70%;
+            border-top-left-radius: 0px;
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 10px;
+            border-bottom-left-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .hamburger {
+            display: block;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: #fff;
+            margin: 3px 0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 0px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            min-height: 60vh;
+            width: 70%;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05), 0 -4px 15px rgba(0, 0, 0, 0.05), 4px 0 15px rgba(0, 0, 0, 0.05), -4px 0 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+            word-wrap: break-word;
+        }
+
+        .card img {
+            width: 100%;
+            height: 182px;
+            width: 123px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor:pointer;
+        }
+
+        .card-outline {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02), 0 -4px 15px rgba(0, 0, 0, 0.02), 4px 0 15px rgba(0, 0, 0, 0.02), -4px 0 15px rgba(0, 0, 0, 0.02);
+            margin-bottom: 15px;
+            word-wrap: break-word;    
+        }
+
+        .overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active .popup {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .popup-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f1f5ff;
+            color: #4e73df;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .popup-option:hover {
+            background: #dce6ff;
+            transform: translateY(-3px);
+        }
+
+        .popup a {
+            color: #4e73df
+        }
+
+        .popup button {
+            background: #4e73df;
+            color: white;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border-style: none;
+        }
+
+        .popup-option svg {
+            margin-right: 10px;
+            fill: #4e73df;
+        }
+
+        .popup-option a {
+            text-decoration: none;
+            color: #4e73df;
+        }
+
+        .detailed-view-contents {
+            word-wrap: break-word;
+        }
+
+        #popup-details {
+            max-height: 90%;
+            overflow-y: auto;
+        }
+
+        .loading {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skeleton-loader {
+            width: 300px;
+            padding: 10px;
+        }
+
+        .skeleton-title {
+            width: 80%;
+            height: 20px;
+            margin-bottom: 10px;
+            background: #ddd;
+            border-radius: 4px;
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        .skeleton-line {
+            width: 100%;
+            height: 15px;
+            margin-bottom: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        .skeleton-line.short {
+            width: 60%;
+        }
+
+        @keyframes pulse {
+            0% {
+                background-color: #ddd;
+            }
+
+            50% {
+                background-color: #e5e5e5;
+            }
+
+            100% {
+                background-color: #ddd;
+            }
+        }
+
+        a {
+            color: rgb(255, 255, 255);
+        }
+
+        #search button {
+            background: #4e73df;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border-style: none;
+        }
+
+        #search input {
+            padding: 10px;
+            border-radius: 8px;
+            border-style: solid;
+            border-color: #4e73df;
+            width: 100%;
+        }
+
+        #search svg {
+            fill: #fff;
+        }
+
+        .centered {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remote {
+            width: 180px;
+            height: 500px;
+            background-color: #222;
+            border-radius: 30px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .remote-title {
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .button {
+            width: 60px;
+            height: 60px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background-color: #666;
+        }
+
+        .button:active {
+            background-color: #888;
+        }
+
+        .play { background-color: #4caf50; }       /* Green for Play */
+        .pause { background-color: #ff9800; }      /* Orange for Pause */
+        .stop { background-color: #f44336; }       /* Red for Stop */
+        .fast-forward, .rewind {
+            background-color: #2196f3;             /* Blue for Fast Forward and Rewind */
+        }
+
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+
+        .play-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .spacer {
+            height: 20px;
+        }
+
+        .power-button:hover {
+            background-color: #ff5252;
+        }
+
+        .info-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .info-buttons button {
+            background: #4e73df;
+            color: white;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border-style: none;
+        }
+
+        .disabled {
+            pointer-events: none; /* Disables clicking */
+            opacity: 0.6;
+        }
+
+        .popup-details {
+            max-height: 90%;
+        }
+
+        .suggestion {
+            padding: auto;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            background: #f1f5ff;
+            padding: 10px;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .suggestion:hover {
+            background: #dce6ff;
+        }
+
+        .loading::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 30%;
+            height: 100%;
+            background: #4e73df;
+            animation: loading 1s infinite;
+        }
+
+        .fade-in-slow {
+            font-style: italic;
+            animation: fadeIn 5s;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                display: none;
+            }
+
+            50% {
+                opacity: 0;
+                display: none;
+            }
+
+            75% {
+                opacity: 0;
+                display: none;
+            }
+
+            100% {
+                opacity: 1;
+                display: block;
+            }
+        }
+
+        @keyframes loading {
+            0% {
+                left: -30%;
+            }
+
+            50% {
+                left: 100%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            header {
+                width: 100%;
+            }
+
+            .content {
+                width: 100%;
+            }
+
+            footer {
+                width: 100%;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>PiRate Cable Box</h1>
+        <div class="hamburger" onclick="menu_event()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </header>
+
+    <div class="content" id="home">
+        <h3>Trending Movies and TV shows</h3>
+        <br>
+        <div class="movie-contents">
+            <div class="card">
+                <p>Loading trending movies...</p>
+                <p class="fade-in-slow">This may take a minute!</p>
+                <br>
+                <div class="loading"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content hidden" id="search">
+        <h3>Search for Movies and TV</h3>
+        <br>
+        <div class="card">
+            <div style="display: flex; justify-content: space-between;"><input type="text" id="search-input"
+                    onkeyup="suggested_search(this)" onkeypress="if(event.keyCode === 13) search()" placeholder="Search for something . . .">&nbsp;<button
+                    onclick="search()"><svg width="24" height="24" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M18.319 14.4326C20.7628 11.2941 20.542 6.75347 17.6569 3.86829C14.5327 0.744098 9.46734 0.744098 6.34315 3.86829C3.21895 6.99249 3.21895 12.0578 6.34315 15.182C9.22833 18.0672 13.769 18.2879 16.9075 15.8442C16.921 15.8595 16.9351 15.8745 16.9497 15.8891L21.1924 20.1317C21.5829 20.5223 22.2161 20.5223 22.6066 20.1317C22.9971 19.7412 22.9971 19.1081 22.6066 18.7175L18.364 14.4749C18.3493 14.4603 18.3343 14.4462 18.319 14.4326Z" />
+                    </svg></button></div>
+            <br>
+            <div class="search-suggestions"></div>
+            <div class="search-results"></div>
+        </div>
+    </div>
+
+    <div class="content hidden" id="media">
+        <h3>Your Media</h3>
+        <br>
+        <div class="progress">Nothing here!</div>
+    </div>
+
+    <div class="content hidden" id="controls">
+        <div class="centered">
+            <div class="remote">
+                    <div class="remote-title">
+                        TV Remote
+                    </div>
+            
+                    <div class="spacer"></div>
+                
+                    <div class="nav-section">
+                        <div class="nav-buttons">
+                            <button onclick="rw()" class="button rewind">◀◀ <br> RW</button>
+                            <button onclick="ff()" class="button fast-forward">▶▶ <br> FF</button>
+                        </div>
+                    </div>
+                
+                    <div class="spacer"></div>
+                
+                    <div class="play-section">
+                        <button onclick="pl()" class="button play">▶ <br> PL</button>
+                        <button onclick="ps()" class="button pause">⏸ <br> PS</button>
+                        <button onclick="st()" class="button stop">⏹ <br> ST</button>
+                    </div>
+
+                    <div class="spacer"></div>
+
+                    <div class="nav-section">
+                        <div class="nav-buttons">
+                            <button class="button play" onclick="enable_cc()">CC </button>
+                            <button class="button stop" onclick="disable_cc()">CC</button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="popup">
+            <a href="/">
+                <div class="popup-option">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
+                    </svg>
+                    <p>Home</p>
+                </div>
+            </a>
+            <a onclick="search_menu()" href="#">
+                <div class="popup-option">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M18.319 14.4326C20.7628 11.2941 20.542 6.75347 17.6569 3.86829C14.5327 0.744098 9.46734 0.744098 6.34315 3.86829C3.21895 6.99249 3.21895 12.0578 6.34315 15.182C9.22833 18.0672 13.769 18.2879 16.9075 15.8442C16.921 15.8595 16.9351 15.8745 16.9497 15.8891L21.1924 20.1317C21.5829 20.5223 22.2161 20.5223 22.6066 20.1317C22.9971 19.7412 22.9971 19.1081 22.6066 18.7175L18.364 14.4749C18.3493 14.4603 18.3343 14.4462 18.319 14.4326Z" />
+                    </svg>
+                    <p>Search</p>
+                </div>
+            </a>
+            <a onclick="show_media()" href="#">
+                <div class="popup-option">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" > <path fill-rule="evenodd" clip-rule="evenodd" d="M3 5C3 3.34315 4.34315 2 6 2H14C17.866 2 21 5.13401 21 9V19C21 20.6569 19.6569 22 18 22H6C4.34315 22 3 20.6569 3 19V5ZM13 4H6C5.44772 4 5 4.44772 5 5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V9H13V4ZM18.584 7C17.9413 5.52906 16.6113 4.4271 15 4.10002V7H18.584Z" fill="currentColor" /> </svg>
+                    <p>Media</p>
+                </div>
+            </a>
+            <a onclick="show_controls()" href="#">
+                <div class="popup-option">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" > <path d="M14.8284 6.34313L16.2426 4.92892L12 0.686279L7.75735 4.92892L9.17156 6.34313L12 3.51471L14.8284 6.34313Z" fill="currentColor" /> <path d="M4.92892 16.2426L6.34313 14.8284L3.51471 12L6.34313 9.17156L4.92892 7.75735L0.686279 12L4.92892 16.2426Z" fill="currentColor" /> <path d="M7.75735 19.0711L12 23.3137L16.2426 19.0711L14.8284 17.6568L12 20.4853L9.17156 17.6568L7.75735 19.0711Z" fill="currentColor" /> <path d="M17.6568 9.17156L20.4853 12L17.6568 14.8284L19.0711 16.2426L23.3137 12L19.0711 7.75735L17.6568 9.17156Z" fill="currentColor" /> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 8C14.2091 8 16 9.79086 16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8ZM12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10Z" fill="currentColor" /> </svg>
+                    <p>TV Controls</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="overlay" id="legal-overlay">
+        <div class="popup">
+            <h3>Legal Notice</h3>
+            <p>By clicking the following "Accept" button, you agree to the <a href="/legal">legal disclaimer</a> present
+                for this software and its operation.</p>
+            <button onclick="user_policy_accept()">Accept</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="message">
+        <div class="popup">
+            <div id="message-contents"></div>
+            <button onclick="close_message()">Close</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="details">
+        <div class="popup" id="popup-details">
+            <div class="detailed-view-content"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="loading">
+        <div class="popup">
+            <h3>Hang tight!</h3>
+            <p>Your media is being loaded. This should only take a second...</p>
+            <div class="loading"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 - <a href="https://www.mileshilliard.com/">Miles H</a></p>
+        <p style="text-align: right;">(<a href="/legal">Legal Disclaimer</a>)</p>
+    </footer>
+
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        let STATE = 0;
+        let SEARCH_FLAG = false;
+
+        const policy_accept = localStorage.getItem('policy_accept') || false;
+
+        setInterval(update_status, 2000);
+
+        if (!policy_accept) {
+            console.log("Policy not accepted");
+            document.getElementById('legal-overlay').classList.add('active');
+        }
+
+        function menu_event() {
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function show_loading() {
+            document.getElementById('loading').classList.add('active');
+        }
+
+        function dismiss_loading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function pl() {
+            socket.emit('play');
+        }
+
+        function ps() {
+            socket.emit('pause');
+        }
+
+        function st() {
+            if (confirm("Are you sure you want to exit the media player? The progress will be forgotten.")) {
+                socket.emit('stop');
+                show_media();
+            }
+        }
+
+        function rw() {
+            socket.emit('rewind');
+        }
+
+        function ff() {
+            socket.emit('fast_forward');
+        }   
+
+        function enable_cc() {
+            socket.emit('enable_cc');
+        }
+
+        function disable_cc() {
+            socket.emit('disable_cc');
+        }
+
+        function show_controls() {
+            document.getElementById('controls').classList.remove('hidden');
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('media').classList.add('hidden');
+            document.getElementById('search').classList.add('hidden');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        function show_media() {
+            document.getElementById('media').classList.remove('hidden');
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('search').classList.add('hidden');
+            document.getElementById('controls').classList.add('hidden');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        function search_menu() {
+            document.getElementById('search').classList.remove('hidden');
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('controls').classList.add('hidden');
+            document.getElementById('media').classList.add('hidden');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        function close_message() {
+            document.getElementById('message').classList.remove('active');
+        }
+
+        function pause_torrent(hash) {
+            socket.emit('pause_torrent', hash);
+        }
+
+        function resume_torrent(hash) {
+            socket.emit('resume_torrent', hash);
+        }
+
+        function delete_torrent(hash) {
+            if (confirm("Are you sure you want to delete this?")) {
+                socket.emit('delete_torrent', hash);
+                show_message("Torrent Deleted", "Your media has been deleted.");
+            }
+        }
+
+        function watch_torrent(hash) {
+            socket.emit('watch', hash);
+            show_loading();
+        }
+
+        function search() {
+            document.querySelector('.search-suggestions').innerHTML = '';
+            document.querySelector('.search-results').innerHTML = 'Searching...';
+            socket.emit('search', document.getElementById('search-input').value);
+        }
+
+        function suggested_search(inputbox) {
+            if (inputbox.value.length > 3) {
+                fetch(`https://cdn.1337x.to/cdnsuggest.php?term=${inputbox.value}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const suggestions = document.querySelector('.search-suggestions');
+                        suggestions.innerHTML = '';
+                        data = data['data'];
+                        data.forEach(item => {
+                            const suggestion = document.createElement('div');
+                            suggestion.classList.add('suggestion');
+                            suggestion.onclick = () => {
+                                inputbox.value = item;
+                                suggestions.innerHTML = '';
+                            };
+                            suggestion.innerText = item;
+                            suggestions.appendChild(suggestion);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching suggestions:', error));
+            }
+        }
+
+        function user_policy_accept() {
+            //localStorage.setItem('policy_accept', true);
+            document.getElementById('legal-overlay').classList.remove('active');
+        }
+
+        function detailed_view(torrentId) {
+            document.getElementById(`detailed-${torrentId}`).classList.remove('hidden');
+            document.getElementById(`detailed-${torrentId}`).classList.add('active');
+            document.getElementById('details').classList.add('active');
+            document.getElementById('details').classList.remove('hidden');
+        }
+
+        function close_detailed_view() {
+            document.getElementById('details').classList.remove('active');
+            const detailedViews = document.querySelectorAll('.detailed-view-content > div');
+            detailedViews.forEach(view => {
+                view.classList.add('hidden');
+            });
+        }
+
+        function download(magnet_url) {
+            if (magnet_url) {
+                socket.emit('torrent', magnet_url);
+            }
+        }
+
+        function show_message(title, message) {
+            document.getElementById('message').classList.add('active');
+            document.getElementById('message-contents').innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+            `;
+        }
+
+        function update_status() {
+            socket.emit('status');
+        }
+
+        // Close overlay when clicked outside
+        document.addEventListener('click', function (event) {
+            const overlay = document.getElementById('overlay');
+            if (event.target === overlay) {
+                overlay.classList.remove('active');
+            }
+        });
+
+        function parse_data(data) {
+            var content = document.querySelector('.movie-contents');
+            content.innerHTML = "";
+
+            let general = data.data;
+            let extra = data.extra;
+
+            general.forEach(element => {
+                var card = document.createElement('div');
+                card.classList.add('card');
+
+                const elementStr = JSON.stringify(element).replace("'", '');
+                const extraStr = JSON.stringify(extra[element.torrentId]).replace("'", '');
+
+                card.innerHTML = `
+                    <img onclick="detailed_view(${element.torrentId})"
+                        src="${extra[element.torrentId]?.thumbnail || 'https://via.placeholder.com/123x182'}" 
+                        alt="${extra[element.torrentId]?.shortName || 'No description.'}">
+                    <h4>${element.name}</h4>
+                    <p><b>Genre: </b>${extra[element.torrentId]?.genre || 'None specified.'}</p>
+                    <p><b>Downloads: </b>${extra[element.torrentId]?.downloads || 'Unknown'}</p>
+                    <p><b>Uploaded: </b>${extra[element.torrentId]?.uploadDate || 'Unknown'}</p>
+                    <p><b>File size: </b>${element.size || 'Unknown'}</p>
+                `;
+
+                content.appendChild(card);
+
+                var detailed = document.createElement('div');
+                detailed.classList.add('hidden');
+                detailed.classList.add('popup-details')
+                detailed.id = `detailed-${element.torrentId}`;
+                detailed.innerHTML = `
+                    <button onclick="close_detailed_view()" style="position: absolute; top: 10px; right: 10px;">X</button>
+                    <img src="${extra[element.torrentId]?.thumbnail || 'https://via.placeholder.com/123x182'}" 
+                        alt="${extra[element.torrentId]?.shortName || 'No description.'}">
+                        <br>
+                    <h3 style="word-wrap: break-word;">${element.name}</h3>
+                    <p><b>Short name: </b>${extra[element.torrentId]?.shortName || 'Unknown.'}</p>
+                    <p><b>Genre: </b>${extra[element.torrentId]?.genre || 'None specified.'}</p>
+                    <p><b>Downloads: </b>${extra[element.torrentId]?.downloads || 'Unknown'}</p>
+                    <p><b>Uploaded: </b>${extra[element.torrentId]?.uploadDate || 'Unknown'}</p>
+                    <p><b>File size: </b>${element.size || 'Unknown'}</p>
+                    <p><b>Seeders: </b>${extra[element.torrentId]?.seeders || 'Unknown'}</p>
+                    <p><b>Leechers: </b>${extra[element.torrentId]?.leechers || 'Unknown'}</p>
+                    <p><b>Language: </b>${extra[element.torrentId]?.language || 'Unknown'}</p>
+                    <p><b>1337x: </b><a href="${element.link || '#'}" target="_blank">View on 1337x</a></p>
+                    <p><b>IMDb: </b><a href="https://www.imdb.com/find/?q=${extra[element.torrentId]?.shortName || ''}" target="_blank">View on IMDb</a></p>
+                    <br>
+                    <p><b>Full description: </b>${extra[element.torrentId]?.description || 'No description.'}</p>
+                    <br>
+                    <div style="display: flex; justify-content: space-between;">
+                        <button onclick="download('${extra[element.torrentId]?.magnetLink || false}')">Download</button>
+                        <button onclick="close_detailed_view()">Close</button>
+                    </div>
+                `;
+                document.querySelector('.detailed-view-content').appendChild(detailed);
+            });
+        }
+
+        socket.on('connect', function () {
+            console.log("Connected to server");
+            socket.emit('trending'); // request for trending movies and tv shows
+            STATE = 1;
+        });
+        socket.on('disconnect', function () {
+            console.error("Disconnected from server");
+            STATE = 0;
+            setTimeout(function () {
+                if (STATE == 0) {
+                    show_message("Connection Error", "Disconnected from server. Please refresh the page to reconnect.");
+                }
+            }, 3000);
+        });
+        socket.on('watch_res', function (data) {
+            dismiss_loading();
+            if (!data.data) {
+                show_message("Watch Error", "There was an error during playback. The file could't be located. Please either retry the download or find another torrent to use.");
+            } else {
+                show_controls();
+            }
+        });
+        socket.on('status_res', function (data) {
+            console.log(data.data);
+
+            data = data.data;
+
+            document.querySelector('.progress').innerHTML = '';
+
+            data.forEach(element => {
+                let info = document.createElement('div');
+                info.classList.add('card-outline');
+
+                const bitsPerSecond = element.dlspeed;
+                const bitsToMbps = bitsPerSecond / 1_000_000;
+
+                var disabled_pause, disabled_resume, disabled_watch;
+
+                var eta = (element.eta / 60).toFixed(2);
+                if (eta == 144000) {
+                    eta = "Unknown";
+                }
+
+                if (element.state == "pausedDL") {
+                    eta = "(Paused)";
+                    element.state = "Paused";
+                    disabled_pause = "disabled";
+                    disabled_resume = "";
+                } else {
+                    disabled_pause = "";
+                    disabled_resume = "disabled";
+                }
+
+                if ((element.progress * 100) == 100) {
+                    eta = "0";
+                    disabled_watch = "";
+                } else {
+                    disabled_watch = "disabled";
+                }
+
+                info.innerHTML = `
+                    <h4>${element.name}</h4>
+                    <progress value="${element.progress * 100}" max="100"></progress>
+                    <p><b>Progress: </b>${(element.progress * 100).toFixed(2)}%</p>
+                    <p><b>State: </b>${element.state}</p>
+                    <p><b>Download speed: </b>${bitsToMbps.toFixed(2)} Mbps</p>
+                    <p><b>ETA: </b>${eta} minutes remaining</p>
+                    <div class="info-buttons">
+                        <button class="${disabled_pause}" onclick="pause_torrent('${element.hash}')">Pause Download</button>
+                        <button class="${disabled_resume}" onclick="resume_torrent('${element.hash}')">Resume Download</button>
+                        <button onclick="delete_torrent('${element.hash}')">Delete File</button>
+                        <button class="${disabled_watch}" onclick="watch_torrent('${element.hash}')">Watch Now</button>
+                    </div>
+                `;
+                document.querySelector('.progress').appendChild(info);
+            });
+        });
+        socket.on('torrent_res', function (data) {
+            close_detailed_view();
+            if (data.data) {
+                show_message("Download Started", "Your download has started.");
+            } else {
+                show_message("Download Error", "There was an error starting your download. Please try again.");
+            }
+        });
+        socket.on('details_res', function (response) {
+            let data = response.data;
+            var card = document.getElementById(`search-${response.torrentId}`);
+            console.log(data.category);
+            if (data.category !== 'Movies' && data.category !== 'TV') {
+                card.remove();
+                return;
+            }
+            card.innerHTML = `
+                <img onclick="detailed_view(${response.torrentId})" src="${data.thumbnail || 'https://via.placeholder.com/123x182'}" 
+                    alt="${data.shortName || 'No description.'}">
+                <h4>${data.name}</h4>
+                <p><b>Genre: </b>${data.genre || 'None specified.'}</p>
+                <p><b>Downloads: </b>${data.downloads || 'Unknown'}</p>
+                <p><b>Uploaded: </b>${data.uploadDate || 'Unknown'}</p>
+                <p><b>File size: </b>${data.size || 'Unknown'}</p>
+            `;
+
+            var detailed = document.createElement('div');
+            detailed.classList.add('hidden');
+            detailed.classList.add('popup-details')
+            detailed.id = `detailed-${response.torrentId}`;
+            detailed.innerHTML = `
+                    <button onclick="close_detailed_view()" style="position: absolute; top: 10px; right: 10px;">X</button>
+                    <img src="${data.thumbnail || 'https://via.placeholder.com/123x182'}" 
+                        alt="${data.shortName || 'No description.'}">
+                        <br>
+                    <h3 style="word-wrap: break-word;">${data.name}</h3>
+                    <p><b>Short name: </b>${data.shortName || 'Unknown.'}</p>
+                    <p><b>Genre: </b>${data.genre || 'None specified.'}</p>
+                    <p><b>Downloads: </b>${data.downloads || 'Unknown'}</p>
+                    <p><b>Uploaded: </b>${data.uploadDate || 'Unknown'}</p>
+                    <p><b>File size: </b>${data.size || 'Unknown'}</p>
+                    <p><b>Seeders: </b>${data.seeders || 'Unknown'}</p>
+                    <p><b>Leechers: </b>${data.leechers || 'Unknown'}</p>
+                    <p><b>Language: </b>${data.language || 'Unknown'}</p>
+                    <p><b>1337x: </b><a href="https://1337x.to/search/${data.shortName || '#'}/1/" target="_blank">View on 1337x</a></p>
+                    <p><b>IMDb: </b><a href="https://www.imdb.com/find/?q=${data.shortName || ''}" target="_blank">View on IMDb</a></p>
+                    <br>
+                    <p><b>Full description: </b>${data.description || 'No description.'}</p>
+                    <br>
+                    <div style="display: flex; justify-content: space-between;">
+                        <button onclick="download('${data.magnetLink || false}')">Download</button>
+                        <button onclick="close_detailed_view()">Close</button>
+                    </div>
+                `;
+            document.querySelector('.detailed-view-content').appendChild(detailed);
+
+            SEARCH_FLAG = true;
+        });
+        socket.on('trending_res', function (data) {
+            console.log("DATA:");
+            console.log(data.data);
+            console.log("EXTRA:");
+            console.log(data.extra);
+            if (data.data != "null" && data.extra != "null") {
+                parse_data(data);
+            } else {
+                setTimeout(function () {
+                    socket.emit('trending');
+                }, 1000);
+            }
+
+        });
+        socket.on('search_res', function (data) {
+            document.querySelector('.search-results').innerHTML = '';
+            console.log("SEARCH RES: ", data.items);
+            var items = data.items;
+
+            if (items.length == 0) {
+                document.querySelector('.search-results').innerHTML = 'No results found.';
+                return;
+            }
+
+            // fill with placeholder loading animtation...
+            items.forEach(item => {
+                var card = document.createElement('div');
+                card.classList.add('card-outline');
+                card.id = `search-${item.torrentId}`;
+                card.innerHTML = `
+                    <div class="skeleton-loader">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                `;
+                document.querySelector('.search-results').appendChild(card);
+                console.log("ITEM: ", item);
+            });
+
+            // load each one individually
+            items.forEach(item => {
+                SEARCH_FLAG = false; // wait for each one to complete.
+                socket.emit('details', item.torrentId);
+                (function waitForSearchFlag() {
+                    if (SEARCH_FLAG) {
+                        return;
+                    }
+                    setTimeout(waitForSearchFlag, 100);
+                })();
+            })
+
+        });
+    </script>
+</body>
+
+</html>

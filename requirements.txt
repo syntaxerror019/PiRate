@@ -1,0 +1,7 @@
+python-vlc==3.0.21203
+Flask==3.0.3
+flask-socketio==5.4.1
+1337x==1.2.6
+requests==2.32.3
+pyQt5==5.15.10
+psutil==6.1.0
