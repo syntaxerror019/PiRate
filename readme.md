@@ -17,9 +17,8 @@ For all torrenting, a VPN is strongly recommended. I personally use [Proton VPN]
 ## Installation
 ### 1. Clone the Repository
 ```sh
-git clone <repository_url>
-cd <repository_folder>
-```
+git clone https://github.com/syntaxerror019/PiRate.git
+cd PiRate
 
 ### 2. Install Dependencies
 ```sh
