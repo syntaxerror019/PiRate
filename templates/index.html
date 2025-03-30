@@ -618,7 +618,7 @@
     <div class="overlay" id="message">
         <div class="popup">
             <div id="message-contents"></div>
-            <button onclick="close_message()">Close</button>
+            <button id="message-button" onclick="close_message()">Close</button>
         </div>
     </div>
 
@@ -648,13 +648,16 @@
         let STATE = 0;
         let SEARCH_FLAG = false;
 
-        const policy_accept = localStorage.getItem('policy_accept') || false;
+        var update_required = false;
+
+        const policy_accept = sessionStorage.getItem('policy_accept') || false;
 
         setInterval(update_status, 2000);
 
         if (!policy_accept) {
             console.log("Policy not accepted");
             document.getElementById('legal-overlay').classList.add('active');
+            sessionStorage.setItem('policy_accept', true);
         }
 
         function menu_event() {
@@ -808,12 +811,24 @@
             }
         }
 
-        function show_message(title, message) {
+        function show_message(title, message, buttonText = "Close", buttonEnabled = true) {
             document.getElementById('message').classList.add('active');
             document.getElementById('message-contents').innerHTML = `
                 <h3>${title}</h3>
                 <p>${message}</p>
             `;
+
+            const messageButton = document.getElementById('message-button');
+            if (buttonText) {
+                messageButton.innerText = buttonText;
+            }
+
+            if (buttonEnabled) {
+                document.getElementById('message-button').style.display = 'block';
+            } else {
+                document.getElementById('message-button').style.opacity = '0.5';
+                document.getElementById('message-button').style.pointerEvents = 'none';
+            }
         }
 
         function update_status() {
@@ -889,6 +904,10 @@
 
         socket.on('connect', function () {
             console.log("Connected to server");
+            if (update_required) {
+                show_message("Update Finished!", "Update installed successfully!");
+                update_required = false; // Reset the flag
+            }
             socket.emit('trending'); // request for trending movies and tv shows
             STATE = 1;
         });
@@ -900,6 +919,22 @@
                     show_message("Connection Error", "Disconnected from server. Please refresh the page to reconnect.");
                 }
             }, 3000);
+        });
+        socket.on('update', function (data) {
+            // There is an update available!
+            console.log("Update available: ", data);
+            if (confirm(`An update is available! Would you like to download it? (Strongly Recommended)`)) {
+               socket.emit('update_now')
+            }
+        });
+        socket.on('update_now_res', function (data) {
+            // There is an update available!
+            if (data.data) {
+                show_message("Update Downloaded", "Update is installing. Please wait for the application to automatically restart. This may take a few seconds.", buttonText = "Working...", buttonEnabled = false);
+                update_required = true;
+            } else {
+                show_message("Update Error", "There was an error downloading the update. Please try again later.");
+            }
         });
         socket.on('watch_res', function (data) {
             dismiss_loading();

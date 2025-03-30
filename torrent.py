@@ -212,14 +212,16 @@ class tr:
     
 
 
-    def get_file_path(self, torrents):
-        """ Finds the best matching video file based on keyword similarity. """
+    def get_file_path(self, id, torrents):
         video_extensions = ('.mp4', '.mkv', '.avi', '.mov', '.flv', '.wmv')
         best_match = None
         best_match_score = 0
 
         # Iterate over every torrent entry
         for entry in torrents:
+            if entry['hash'] != id:
+                continue
+            
             entry_keywords = split_keywords(entry['name'])
             logging.info(f"Checking files for torrent: {entry['name']} ({entry_keywords})")
 

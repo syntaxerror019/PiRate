@@ -6,6 +6,7 @@ from torrent import tr
 from player import Player
 from overlay import FullscreenApp
 from logger import logging
+from gitupdate import GitUpdater
 import json
 import time
 import threading
@@ -15,6 +16,7 @@ import logging
 import sys
 
 torrents = py1337x() 
+updater = GitUpdater(github_owner="syntaxerror019", github_repo="PiRate", branch="main")
 
 # change this depending on your QBittorrent software/ web ui api version...
 tor = tr(use_old_api=False)
@@ -26,6 +28,8 @@ settings = {}
 
 items = {}
 extra = {}
+
+update_available = False
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -42,6 +46,12 @@ def legal():
 
 @socketio.on('connect')
 def test_connect():
+    global update_available
+    if updater.check_for_updates():
+        update_available = True
+        logging.info("Update available!")
+        emit('update', {'data': True})
+        
     logging.info('Client connected')
 
 @socketio.on('trending')
@@ -76,6 +86,15 @@ def handle_search(key):
 @socketio.on('details')
 def handle_details(id):
     emit('details_res', {'data': torrents.info(torrentId=id), 'torrentId':id})
+    
+@socketio.on('update_now')
+def handle_update_res():
+    logging.info("Updating client now!")
+    if update_available:
+        updater.update_if_available()
+        emit('update_now_res', {'data': True})
+    else:
+        emit('update_now_res', {'data': False})
 
 @socketio.on('pause_torrent')
 def handle_pause(id):
@@ -158,7 +177,12 @@ def handle_disable_cc():
     player.disable_subtitles()
 
 def setup():
-    global items, extra, settings
+    global items, extra, settings, update_available
+    
+    if updater.check_for_updates():
+        update_available = True
+        logging.info("Update available!")
+    
     if os.path.exists(SETTINGS):
         with open(SETTINGS, 'r') as f:
             settings = json.load(f)
