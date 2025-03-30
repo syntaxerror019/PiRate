@@ -59,12 +59,10 @@ def handle_torrent(url):
 
 @socketio.on('status')
 def handle_status():
-    print("Received status request")
     emit('status_res', {'data': tor.torrent_status()})
 
 @socketio.on('search')
 def handle_search(key):
-    print("Received search request")
     try:
         emit('search_res', torrents.search(query=key))
     except:
@@ -72,7 +70,6 @@ def handle_search(key):
 
 @socketio.on('details')
 def handle_details(id):
-    print("Received details request")
     emit('details_res', {'data': torrents.info(torrentId=id), 'torrentId':id})
 
 @socketio.on('pause_torrent')
@@ -126,9 +123,7 @@ def handle_fast_forward():
         print("FW")
     last_fast_forward_time = current_time
     fast_forward_count += 1
-    # print(f"Received fast forward request. Count: {fast_forward_count}")
     
-
 @socketio.on('rewind')
 def handle_rewind():
     global rewind_count, last_rewind_time
@@ -141,8 +136,6 @@ def handle_rewind():
         print("RW")
     last_rewind_time = current_time
     rewind_count += 1
-    # print(f"Received rewind request. Count: {rewind_count}")
-  
 
 @socketio.on('stop')
 def handle_stop():
@@ -195,36 +188,37 @@ def background_task():
 
         for item in items_temp:
             info = torrents.info(torrentId=item['torrentId'])
-            #print()
-            #print(info)
-            #print()
             entry = { item['torrentId']: info }
             extra_temp.update(entry)
-        
-        # Update the global variables
+
         items = items_temp
         extra = extra_temp
 
-        # Save the data to a file
         with open(CACHE, 'w') as f:
             json.dump({'data': items, 'extra': extra}, f)
 
         socketio.emit('trending_res', {'data': items, 'extra': extra})
-
         
 
 # Start the SocketIO server
 if __name__ == '__main__':
     setup()
-
-    thread = threading.Thread(target=background_task)
-    thread.daemon = True
-    thread.start()
     
-    socketio_thread = threading.Thread(target=lambda: socketio.run(app, debug=False, host='0.0.0.0', port=8080))
-    socketio_thread.daemon = True
-    socketio_thread.start()
+    try:
+        thread = threading.Thread(target=background_task)
+        thread.daemon = True
+        thread.start()
+        
+        socketio_thread = threading.Thread(target=lambda: socketio.run(app, debug=False, host='0.0.0.0', port=8080))
+        socketio_thread.daemon = True
+        socketio_thread.start()
 
-    app = QApplication(sys.argv)
-    window = FullscreenApp()
-    sys.exit(app.exec_())
+        app = QApplication(sys.argv)
+        window = FullscreenApp()
+        sys.exit(app.exec_())
+
+    except KeyboardInterrupt:
+        print("Exiting...")
+        if player.is_playing():
+            player.stop_and_close()
+        sys.exit(0)

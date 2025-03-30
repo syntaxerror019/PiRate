@@ -1,4 +1,4 @@
-import requests, os, re
+import requests, os, re, time
 
 TORRENT_BASE_URL = None
 TORRENT_VERSION_ENDPOINT = None
@@ -27,6 +27,7 @@ V3_TORRENT_DELETE_ENDPOINT = '/command/deletePerm'
 
 def split_keywords(name):
     return re.split(r'[.\s\-]+', name.lower())
+
 
 class tr:
     def __init__(self, url=None, endpoint=None, use_old_api=False):
@@ -65,16 +66,25 @@ class tr:
 
         self.location = None
 
-        print("URL:", TORRENT_BASE_URL)
-        print("Endpoint:", TORRENT_VERSION_ENDPOINT)
-
-        try:
-            res = requests.get(TORRENT_BASE_URL + TORRENT_VERSION_ENDPOINT)
-        except requests.exceptions.ConnectionError:
-            raise ConnectionError("Connection error. Is qbittorrent running? Is the right URL and port set?")
+        connection_attempts = 0
         
-        if res.status_code != 200:
-            raise ConnectionError("Non 200 status code. Is the right URL and port set?")
+        # attempt to connect to the client over the span of 15 seconds
+        
+        while connection_attempts < 3:
+            try:
+                # Test connection to the torrent client
+                res = requests.get(TORRENT_BASE_URL + TORRENT_VERSION_ENDPOINT)
+                if res.status_code == 200:
+                    break
+                else:
+                    raise ConnectionError("Non 200 status code. Is the right URL and port set?")
+            except requests.exceptions.ConnectionError:
+                connection_attempts += 1
+                if connection_attempts >= 3:
+                    raise ConnectionError("Connection error. Is qbittorrent running? Is the right URL and port set?")
+                print(f"Connection attempt {connection_attempts} failed. Retrying in 5 seconds...")
+                time.sleep(5)
+
 
     def set_torrent_download_location(self, location, create=False):
         if not os.path.exists(location):
@@ -82,7 +92,7 @@ class tr:
                 return False
             os.makedirs(location)
         
-        self.location = location  # Set the location after confirming it exists or creating it
+        self.location = location 
         return True
 
 
@@ -110,6 +120,7 @@ class tr:
         if res.status_code == 200:
             return True
         return False
+    
     
     def torrent_status(self):
         try:
@@ -140,6 +151,7 @@ class tr:
         
         return data
     
+    
     def pause(self, torrent_hash):
         if not torrent_hash:
             return False
@@ -158,6 +170,7 @@ class tr:
             return True
         return False
     
+    
     def resume(self, torrent_hash):
         if not torrent_hash:
             return False
@@ -175,6 +188,7 @@ class tr:
         if res.status_code == 200:
             return True
         return False
+    
     
     def delete(self, torrent_hash, delete_files=True):
         if not torrent_hash:
