@@ -47,12 +47,24 @@ class GitUpdater:
         except requests.RequestException as e:
             print(f"Error fetching latest commit information: {e}")
             return None
+        
+        # get version from url
+        version_url = "https://raw.githubusercontent.com/syntaxerror019/PiRate/refs/heads/main/version.txt"
+        try:
+            version_response = requests.get(version_url)
+            version_response.raise_for_status()
+            version = version_response.text.strip()
+            print(f"Version: {version}")
+        except requests.RequestException as e:
+            print(f"Error fetching version information: {e}")
+            version = "unknown"
     
         return {
                 "sha": commit_info["sha"],
                 "message": commit_info["commit"]["message"],
                 "author": commit_info["commit"]["author"]["name"],
-                "date": commit_info["commit"]["author"]["date"]
+                "date": commit_info["commit"]["author"]["date"],
+                "version": version
             }
 
     def check_for_updates(self):

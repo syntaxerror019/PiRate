@@ -15,7 +15,7 @@ import pathlib
 import logging
 import sys
 
-VERSION = "1.14.3"
+version = "1.0.0"  # default version, will be updated from version.txt
 
 torrents = py1337x() 
 updater = GitUpdater(github_owner="syntaxerror019", github_repo="PiRate", branch="main")
@@ -40,7 +40,7 @@ player = Player()
 # serve the main page
 @app.route('/')
 def index():
-    return render_template('index.html', version=VERSION)
+    return render_template('index.html', version=version)
 
 @app.route('/legal')
 def legal():
@@ -179,10 +179,12 @@ def handle_disable_cc():
     player.disable_subtitles()
 
 def setup():
-    global items, extra, settings
+    global items, extra, settings, version
     
-    with open("version.txt", "w") as f:
-        f.write(VERSION)
+    with open("version.txt", "w") as r:
+        version = f.read().strip()
+        
+    logging.critical(f"PiRate v{version} - syntaxerror019")
     
     if os.path.exists(SETTINGS):
         with open(SETTINGS, 'r') as f:
