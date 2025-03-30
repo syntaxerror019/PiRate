@@ -20,7 +20,7 @@ class GitUpdater:
         try:
             response = requests.get(url)
             response.raise_for_status()
-            return response.json()["commit"]["tree"]["sha"]
+            return response.json()["sha"]
         except requests.RequestException as e:
             print(f"Error fetching latest commit: {e}")
             return None
