@@ -8,7 +8,10 @@ from overlay import FullscreenApp
 from logger import logging
 from gitupdate import GitUpdater
 import json
+import psutil
 import time
+import signal
+import subprocess
 import threading
 import os, sys
 import pathlib
@@ -99,7 +102,8 @@ def handle_update_res():
     else:
         emit('update_now_res', {'data': False})
         
-    os.execv(sys.executable, ['python3'] + sys.argv)
+    #os.execv(sys.executable, ['python3'] + sys.argv)
+    restart_now()
 
 @socketio.on('pause_torrent')
 def handle_pause(id):
@@ -239,10 +243,56 @@ def background_task():
 
         socketio.emit('trending_res', {'data': items, 'extra': extra})
         
+        
+def signal_handler(sig, frame):
+    logging.critical("Shutting down...")
+
+    socketio.stop()
+
+    for thread in threading.enumerate():
+        if thread is not threading.main_thread():
+            logging.info(f"Stopping thread: {thread.name}")
+            thread.join(timeout=1)
+
+    if player.is_playing():
+        player.stop_and_close()
+
+    app.quit()
+    os._exit(0)
+    
+    
+def restart_now():
+    logging.critical("Restarting now...")
+
+    socketio.stop()
+
+    for thread in threading.enumerate():
+        if thread is not threading.main_thread():
+            logging.info(f"Stopping thread: {thread.name}")
+            thread.join(timeout=1)
+
+    if player.is_playing():
+        player.stop_and_close()
+        
+    #os.execv(sys.executable, ['python3'] + sys.argv)
+    
+    try:
+        process = psutil.Process(os.getpid())
+
+        for handler in process.open_files() + process.connections():
+            os.close(handler.fd)
+    except Exception as e:
+        print(e)
+
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
+
 
 # Start the SocketIO server
 if __name__ == '__main__':
     setup()
+    
+    signal.signal(signal.SIGINT, signal_handler)  # Handle keyboard interrupt gracefully
     
     try:
         thread = threading.Thread(target=background_task)
@@ -258,7 +308,6 @@ if __name__ == '__main__':
         sys.exit(app.exec_())
 
     except KeyboardInterrupt:
-        logging.info("Shutting down...")
-        if player.is_playing():
-            player.stop_and_close()
-        sys.exit(app.exec_())
+        signal_handler(signal.SIGINT, None)  # Handle keyboard interrupt gracefully
+    except Exception as e:
+        logging.error("An error occurred: %s", str(e))
