@@ -1,7 +1,7 @@
 # PiRate Cable Box
 Stream your favorite movies for free by pirating.
 
-**Disclaimer:** This software is simply a wrapper for the 1337x torrent sharing site and the qbittorrent API. Use at your own discretion, as pirating copywrighted material is ILLEGAL and put you in court and/ or under heavy fines! I am in no way responsible for your actions regarding the use of this software. You have been warned.
+**Disclaimer:** This software is simply a wrapper for the 1337x torrent sharing site and the qbittorrent API. Use at your own discretion, as pirating copyrighted material is ILLEGAL and put you in court and/ or under heavy fines! I am in no way responsible for your actions regarding the use of this software. You have been warned.
 
 A nice and tidily packaged "wrapper" for qbitorrent and 1337x. Find and watch any movie from the comfort of your couch, at no cost! 
 
@@ -20,6 +20,13 @@ For all torrenting, a VPN is strongly recommended. I personally use [Proton VPN]
 git clone https://github.com/syntaxerror019/PiRate.git
 cd PiRate
 ```
+
+### 1.5 Create Virtual Environment (optional)
+This step is optional, however it often times resolves package errors and conflicts
+```sh
+python3 -m venv .env
+```
+
 ### 2. Install Dependencies
 ```sh
 pip install -r requirements.txt
@@ -56,6 +63,8 @@ sudo apt update && sudo apt install qbittorrent
 ### 5. Set Up a VPN
 To ensure secure media streaming, set up a VPN:
 - **Proton VPN (Recommended):** [Download and Install](https://protonvpn.com/download)
+  I personally have had some problems with the GUI on Linux. This may or may not apply to you.
+  
 - **CLI Setup (Linux-based systems):**
   ```sh
   sudo apt install openvpn
@@ -64,11 +73,12 @@ To ensure secure media streaming, set up a VPN:
   ```
 
 
+
 ### 6. Run main.py
 ```sh
 python3 main.py
 ```
-A window will open up and direct you with further instructions.
+A window will open up and direct you with further instructions. Be sure to start QBittorrent, as it is required for this script to operate properly.
 
 
 ## Troubleshooting
