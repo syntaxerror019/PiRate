@@ -20,7 +20,7 @@ import sys
 
 version = "1.0.0"  # default version, will be updated from version.txt
 
-torrents = py1337x() 
+torrents = py1337x("x1337x.cc") 
 updater = GitUpdater(github_owner="syntaxerror019", github_repo="PiRate", branch="main")
 
 # change this depending on your QBittorrent software/ web ui api version...
