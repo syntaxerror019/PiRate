@@ -1,3 +1,10 @@
+# *THIS PROJECT IS DEPRECATED*
+## Please see [Pirate2](https://github.com/syntaxerror019/PiRate2)
+This project was deprecated due to a lack of support on several dependencies and the need for a complete overhaul.
+
+---
+---
+
 # PiRate Cable Box
 Stream your favorite movies for free by pirating.
 
